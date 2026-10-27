@@ -1,82 +1,88 @@
-# PU口袋校园 开屏广告屏蔽（Loon）
+# PU口袋校园 广告屏蔽（Loon）
 
-拦截 **PU口袋校园** 开屏广告的 Loon 插件。核心思路：开屏广告由**阿里妈妈(Tanx)广告 SDK** 下发，App 启动后第一步会请求阿里「AMDC 移动调度中心」拿广告配置；拦掉这个调度请求，SDK 就认为没有广告，开屏广告直接跳过。
+拦截 **PU口袋校园** 全部广告的 Loon 插件。经过两次抓包，已定位到该 App 使用的**三套广告 SDK**，并逐一拦截。
 
-## 抓包依据
+## 抓包结论：App 接入了三套广告 SDK
 
-Loon 导出的 HAR 里只有这一条请求（就是开屏广告的触发点）：
+| 广告 SDK | 域名 | 广告类型 |
+|----------|------|----------|
+| 阿里妈妈 Tanx（阿里） | `amdc.m.taobao.com`（appkey=12431167）、`alimama/mamasearchad/guangguang.cloudvideocdn.taobao.com` | 开屏广告 |
+| Fancy（美数 AdCraft） | `sdk.1rtb.net`、`ad-open2.fancydsp.com`、`t2.fancyapi.com`、`sdkg.fancyapi.com` | 开屏/信息流/插屏 |
+| 穿山甲 Pangle（字节跳动） | `p3/p26-be-pack-sign.pglstatp-toutiao.com` | 信息流/插屏 |
+
+关键抓包证据：
 
 ```
-POST http://59.82.14.161:80/amdc/mobileDispatch
-     ?appkey=12431167&v=6.5&appVersion=7.24.90&cv=1
+# 阿里妈妈 AMDC 调度（开屏广告第一步，appkey=12431167）
+POST http://59.82.14.161:80/amdc/mobileDispatch?appkey=12431167&v=6.5&appVersion=7.24.90&cv=1
 
-body: domain=pingjia.alicdn.com img.alicdn.com ... alimama.cloudvideocdn.taobao.com
-      mamasearchad.cloudvideocdn.taobao.com guangguang.cloudvideocdn.taobao.com ...
-      &appName=Runner&machine=iphoneos&netType=5G&signType=noSec&platform=iphone...
+# Fancy 广告请求（RTB 竞价，app_id=107522）
+POST http://sdk.1rtb.net/sdk/req_ad?app_id=107522&pid=1100050&accept_ad_type=5&...
+
+# Fancy 开屏广告素材图
+GET http://ad-open2.fancydsp.com/pineapple/image/2026/10/15/184203_....jpg
+
+# 穿山甲广告图
+GET http://p26-be-pack-sign.pglstatp-toutiao.com/ad.union.api/....jpeg
 ```
 
-关键标识：
-
-| 字段 | 含义 |
-|------|------|
-| `appkey=12431167` | 阿里妈妈广告 SDK 的调度 key（屏蔽依据） |
-| `/amdc/mobileDispatch` | 阿里 AMDC 移动调度中心接口 |
-| `alimama.cloudvideocdn.taobao.com` | 阿里妈妈 = 阿里广告平台，开屏广告素材 CDN |
-| `mamasearchad.cloudvideocdn.taobao.com` | 搜索广告 CDN |
-| `guangguang.cloudvideocdn.taobao.com` | 逛逛/推广 CDN |
-| `appName=Runner` | App 内部代号 |
-
-> 备注：请求的 User-Agent 显示为「闲鱼」，这是阿里系广告 SDK 复用/伪装了闲鱼的 UA（或抓包时混入了其他流量），不影响屏蔽——真正起标识作用的是 `appkey=12431167` 和 `/amdc/mobileDispatch` 路径。
+> 注：第二次抓包里出现的 `amdc.m.taobao.com?appkey=21380790&appVersion=10.57.20` 和 `cdn.ynuf.aliapp.org?pn=com.taobao.taobao4iphone` 是**淘宝 App** 自身的请求（抓包时混入的背景流量），不是口袋校园的，**未做屏蔽**，避免误伤淘宝。
 
 ## 文件说明
 
 - `pu_ads.plugin` —— Loon 插件本体（可直接导入）
-- `pu_ads_rule.js` —— 拦截脚本（插件通过 `script-path` 引用，需与插件同仓托管）
+- `pu_ads_rule.js` —— 阿里妈妈调度拦截脚本（插件通过 `script-path` 引用）
+
+## 屏蔽原理
+
+1. **阿里妈妈开屏**：`http-request` 脚本拦截所有 `/amdc/mobileDispatch` 请求，命中 `appkey=12431167` 就返回空响应，广告 SDK 拿不到配置，开屏广告跳过。
+2. **Fancy**：`DOMAIN-SUFFIX` 拦掉 `1rtb.net`（广告竞价请求）、`fancydsp.com`（广告素材图）、`fancyapi.com`（上报/网关）。
+3. **穿山甲**：`DOMAIN-SUFFIX` 拦掉 `pglstatp-toutiao.com`（广告图 + 埋点）。
+4. **阿里妈妈素材 CDN**：`DOMAIN` 拦掉 `alimama/mamasearchad/guangguang.cloudvideocdn.taobao.com`。
 
 ## 安装方法
 
 ### 方式一：导入插件（推荐）
 
-1. 把这两个文件推到 `https://github.com/Pinetree7274/pu_ads`（`main` 分支）。
-2. Loon → 配置 → 插件 → 右上角「+」→ 输入插件地址：
+1. 仓库设为 **Public**（Settings → Danger Zone → Change visibility）。
+2. Loon → 配置 → 插件 → 「+」→ 输入：
    ```
-   https://raw.githubusercontent.com/Pinetree7274/pu_ads/main/pu_ads.plugin
+   https://raw.githubusercontent.com/Pinetum7274/pu_ads/main/pu_ads.plugin
    ```
-3. 保存后生效，重新打开 PU口袋校园验证。
+   （如果 raw 超时，改用 jsDelivr 地址：
+   `https://cdn.jsdelivr.net/gh/Pinetum7274/pu_ads@main/pu_ads.plugin`）
+3. 保存生效，重开 App 验证。
 
-> 如果你用的是 `master` 分支，把上面两处 URL 里的 `main` 改成 `master`。
+> 默认分支若不是 `main`，把地址里的 `main` 换成你的分支名。
 
-### 方式二：手动添加（不用仓库托管）
+### 方式二：手动添加（不依赖仓库/网络，最稳）
 
-把下面的配置粘进 Loon 配置文本的对应段落，并手动新建 `pu_ads_rule.js`（内容即本仓库的脚本文件）放到 Loon 的脚本目录：
+把下面配置贴进 Loon 配置文本，脚本内容新建为本地脚本 `pu_ads_rule.js`（内容见本仓库脚本文件）：
 
 ```ini
 [Script]
-http-request ^https?://[^/]+/amdc/mobileDispatch script-path=pu_ads_rule.js, requires-body=false, tag=pu_ads_开屏广告拦截
+http-request ^https?://[^/]+/amdc/mobileDispatch script-path=pu_ads_rule.js, requires-body=false, tag=pu_ads_阿里妈妈开屏拦截
 
 [Rule]
 DOMAIN,alimama.cloudvideocdn.taobao.com,REJECT
 DOMAIN,mamasearchad.cloudvideocdn.taobao.com,REJECT
 DOMAIN,guangguang.cloudvideocdn.taobao.com,REJECT
+DOMAIN-SUFFIX,1rtb.net,REJECT
+DOMAIN-SUFFIX,fancydsp.com,REJECT
+DOMAIN-SUFFIX,fancyapi.com,REJECT
+DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
 
 [MITM]
 hostname = amdc.m.taobao.com, amdcopen.m.taobao.com, amdc.wapa.taobao.com, acs.m.taobao.com
 ```
 
-## 工作原理
-
-1. `http-request` 脚本匹配所有 `/amdc/mobileDispatch` 请求（无论域名还是 IP 直连都能命中）。
-2. 脚本检查 URL 里是否带 `appkey=12431167`，命中才拦截，避免误伤其他 App 的正常调度。
-3. 拦截时返回一个空的 `200` 响应，广告 SDK 拿到空配置 → 跳过开屏广告（而不是报错卡住启动）。
-4. 三条 `DOMAIN,REJECT` 规则是兜底：就算调度请求漏网，广告素材 CDN 也被拦掉，图片/视频加载不出来。
-
 ## 自定义
 
-- **换了 appkey**：编辑 `pu_ads_rule.js`，把新 key 加进 `AD_APPKEYS` 数组：
+- **换 appkey**：编辑 `pu_ads_rule.js`，把新 key 加进 `AD_APPKEYS`：
   ```js
   var AD_APPKEYS = ["12431167", "新appkey"];
   ```
-- **想更彻底**：在 `[Rule]` 里继续追加 `DOMAIN,xxx,REJECT`（抓包里其它广告域名：`video-zb/nt/sh.cloudvideocdn.taobao.com`、`tbsvideo.cloudvideocdn.taobao.com`、`dorangesource.alicdn.com` 等）。注意这些域名可能与正常内容共用，建议按需逐条加、加完验证 App 正常功能。
+- **加更多域名**：在 `[Rule]` 里追加 `DOMAIN-SUFFIX,xxx,REJECT`（抓包里其它广告域名：`video-zb/nt/sh.cloudvideocdn.taobao.com`、`tbsvideo.cloudvideocdn.taobao.com`、`dorangesource.alicdn.com` 等，注意可能和正常内容共用）。
 
 ## 免责声明
 
