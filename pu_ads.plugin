@@ -1,24 +1,35 @@
-#!name = 口袋校园广告屏蔽
-#!desc = 拦截PU口袋校园的阿里妈妈/Fancy/穿山甲广告SDK，去除开屏、信息流及插屏广告
+#!name = 口袋校园广告屏蔽（激进版）
+#!desc = 拦截PU口袋校园的阿里妈妈/Fancy/穿山甲广告SDK，含IP直连与HTTPDNS绕过拦截
 #!author = Pinetum7274
 #!homepage = https://github.com/Pinetum7274/pu_ads
 
 [Script]
-http-request ^https?://[^/]+/amdc/mobileDispatch script-path=https://cdn.jsdelivr.net/gh/Pinetum7274/pu_ads@main/pu_ads_rule.js, requires-body=false, tag=pu_ads_阿里妈妈开屏拦截
+http-request ^https?://[^/]+/amdc/mobileDispatch script-path=https://raw.githubusercontent.com/Pinetum7274/pu_ads/main/pu_ads_rule.js, requires-body=false, tag=pu_ads_阿里妈妈开屏拦截
 
 [Rule]
-# ===== 阿里妈妈广告 SDK（开屏广告） =====
+# ===== 阿里妈妈广告 SDK（开屏广告调度） =====
 DOMAIN,alimama.cloudvideocdn.taobao.com,REJECT
 DOMAIN,mamasearchad.cloudvideocdn.taobao.com,REJECT
 DOMAIN,guangguang.cloudvideocdn.taobao.com,REJECT
+DOMAIN-SUFFIX,tanx.com,REJECT
+DOMAIN-SUFFIX,mmstat.com,REJECT
 
-# ===== Fancy 广告 SDK（开屏/信息流/插屏广告） =====
+# ===== Fancy 广告 SDK（开屏/信息流/插屏，京东等广告主均经此下发） =====
 DOMAIN-SUFFIX,1rtb.net,REJECT
 DOMAIN-SUFFIX,fancydsp.com,REJECT
 DOMAIN-SUFFIX,fancyapi.com,REJECT
 
 # ===== 穿山甲 Pangle SDK（字节跳动） =====
 DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
+DOMAIN-SUFFIX,snssdk.com,REJECT
+DOMAIN-SUFFIX,byteimg.com,REJECT
+DOMAIN-SUFFIX,pstatp.com,REJECT
+
+# ===== 腾讯云 HTTPDNS（广告SDK用它把广告域名解析成IP、绕过域名屏蔽） =====
+IP-CIDR,119.29.29.98/32,REJECT
+
+# ===== 阿里妈妈/淘宝广告 CDN 直连IP（激进：会连带影响淘宝App，不需要可删） =====
+IP-CIDR,59.82.0.0/16,REJECT
 
 [MITM]
 hostname = amdc.m.taobao.com, amdcopen.m.taobao.com, amdc.wapa.taobao.com, acs.m.taobao.com
