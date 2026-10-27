@@ -1,0 +1,67 @@
+#!name = 闪动校园广告屏蔽
+#!desc = 拦截闪动校园Pro全部广告SDK：顺昌智行/爱自由/杭州基准/华子睿/百通/雨晴云/广告玩机/穿山甲/快手/Sigmob/京东DSP/xcultur/wxcjgg/halomobi/讯飞xfadx，含IP直连上报拦截
+#!author = Pinetum7274
+#!homepage = https://github.com/Pinetum7274/pu_ads
+
+[Rule]
+# ===== 顺昌智行（广告聚合/SSP，开屏广告下发 + 曝光上报，与口袋校园共用） =====
+DOMAIN-SUFFIX,shunchangzhixing.com,REJECT
+
+# ===== 爱自由广告 SDK（checkCd/infoConfig/setGInfo，appid=895404） =====
+DOMAIN-SUFFIX,lovefree.cc,REJECT
+
+# ===== 杭州基准广告 SDK（checkCd/infoConfig/setGInfo，appid=190132） =====
+DOMAIN-SUFFIX,hzjizhun.cn,REJECT
+
+# ===== 华子睿广告 SDK（ad2/init2） =====
+DOMAIN-SUFFIX,huazirc.com,REJECT
+
+# ===== 百通广告（开屏广告图片素材 CDN，adimage.bwton.com） =====
+DOMAIN-SUFFIX,bwton.com,REJECT
+
+# ===== 雨晴云（广告事件上报，channel=yqxy） =====
+DOMAIN-SUFFIX,yuqncloud.com,REJECT
+
+# ===== 广告玩机（广告事件上报，channel=meicheng） =====
+DOMAIN-SUFFIX,adwanji.com,REJECT
+
+# ===== 穿山甲 Pangle（字节跳动，get_ads 竞价 + 统计上报，aid=5000546） =====
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com,REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com,REJECT
+DOMAIN-SUFFIX,ctobsnssdk.com,REJECT
+DOMAIN-SUFFIX,zijieapi.com,REJECT
+DOMAIN-SUFFIX,bytescm.com,REJECT
+DOMAIN-SUFFIX,bytegoofy.com,REJECT
+DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
+DOMAIN-SUFFIX,pangle.io,REJECT
+DOMAIN-SUFFIX,csjplatform.com,REJECT
+
+# ===== 快手联盟（open.e.kuaishou.com 广告 SDK + gdfp.gifshow.com 数据流） =====
+DOMAIN-SUFFIX,e.kuaishou.com,REJECT
+DOMAIN-SUFFIX,gifshow.com,REJECT
+
+# ===== Sigmob 移动广告（appId=57891，adservice/track/rtbcallback/n 等子域） =====
+DOMAIN-SUFFIX,sigmob.cn,REJECT
+
+# ===== 京东 DSP（im-x.jd.com/dsp/np 竞价 + 360buyimg 广告素材图） =====
+DOMAIN-SUFFIX,im-x.jd.com,REJECT
+DOMAIN-SUFFIX,360buyimg.com,REJECT
+
+# ===== xcultur 广告（api.ssp / api.fu，SSP init + 瀑布流） =====
+DOMAIN-SUFFIX,xcultur.com,REJECT
+
+# ===== wxcjgg 广告（app/map 平台映射 + rep/init） =====
+DOMAIN-SUFFIX,wxcjgg.cn,REJECT
+
+# ===== halomobi ADX（adx 竞价交易所） =====
+DOMAIN-SUFFIX,halomobi.com,REJECT
+
+# ===== 讯飞 xfadx（tk2 曝光上报） =====
+DOMAIN-SUFFIX,xfadx.com,REJECT
+
+# ===== 8ziben 自有 DSP（api-dsp，扫描设备 App 列表做广告定向；api-cfg 为配置服务器不能拦） =====
+DOMAIN,api-dsp.8ziben.com,REJECT
+
+# ===== 广告上报 IP 直连（绕过域名屏蔽，channel=yqxy/meicheng） =====
+IP-CIDR,124.174.8.127/32,REJECT
