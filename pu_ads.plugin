@@ -1,5 +1,5 @@
 #!name = 口袋校园广告屏蔽（激进版）
-#!desc = 拦截PU口袋校园的阿里妈妈/Fancy/穿山甲广告SDK，含IP直连与HTTPDNS绕过拦截
+#!desc = 拦截PU口袋校园的全部广告SDK：阿里妈妈/Fancy/穿山甲/掌游移动/卓飞传媒/顺昌智行，含IP直连与HTTPDNS绕过拦截
 #!author = Pinetum7274
 #!homepage = https://github.com/Pinetum7274/pu_ads
 
@@ -24,6 +24,15 @@ DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
 DOMAIN-SUFFIX,snssdk.com,REJECT
 DOMAIN-SUFFIX,byteimg.com,REJECT
 DOMAIN-SUFFIX,pstatp.com,REJECT
+
+# ===== 掌游移动 ZY SDK（RTB广告交易所，竞价回调） =====
+DOMAIN-SUFFIX,zhangyuyidong.cn,REJECT
+
+# ===== 卓飞传媒（广告SDK初始化） =====
+DOMAIN-SUFFIX,hzzfcm.com,REJECT
+
+# ===== 顺昌智行（广告聚合/SSP平台，开屏曝光上报） =====
+DOMAIN-SUFFIX,shunchangzhixing.com,REJECT
 
 # ===== 腾讯云 HTTPDNS（广告SDK用它把广告域名解析成IP、绕过域名屏蔽） =====
 IP-CIDR,119.29.29.98/32,REJECT

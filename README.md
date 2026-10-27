@@ -1,14 +1,17 @@
 # PU口袋校园 广告屏蔽（Loon）
 
-拦截 **PU口袋校园** 全部广告的 Loon 插件。经过三次抓包，已定位该 App 使用的**三套广告 SDK**（阿里妈妈 / Fancy / 穿山甲），并针对 IP 直连、HTTPDNS 绕过做激进拦截。
+拦截 **PU口袋校园** 全部广告的 Loon 插件。经过四次抓包，已定位该 App 使用的**六套广告 SDK**（阿里妈妈 / Fancy / 穿山甲 / 掌游移动 / 卓飞传媒 / 顺昌智行），并针对 IP 直连、HTTPDNS 绕过做激进拦截。
 
-## 抓包结论：App 接入了三套广告 SDK
+## 抓包结论：App 接入了六套广告 SDK
 
 | 广告 SDK | 域名 | 广告类型 |
 |----------|------|----------|
 | 阿里妈妈 Tanx（阿里） | `amdc.m.taobao.com`（appkey=12431167）、`alimama/mamasearchad/guangguang.cloudvideocdn.taobao.com`、直连 IP `59.82.x.x` | 开屏广告 |
 | Fancy（美数 AdCraft） | `sdk.1rtb.net`、`ad-open2.fancydsp.com`、`t2.fancyapi.com`、`sdkg.fancyapi.com` | 开屏/信息流/插屏 |
 | 穿山甲 Pangle（字节跳动） | `p3/p26-be-pack-sign.pglstatp-toutiao.com`、`snssdk.com`、`byteimg.com`、`pstatp.com` | 信息流/插屏 |
+| 掌游移动 ZY SDK | `sdklog.zhangyuyidong.cn`（RTB 交易所，竞价回调 adx_code=zysdk2） | 开屏（竞价失败回调） |
+| 卓飞传媒 | `inner-empty.hzzfcm.com`（SDK 初始化 init2） | 开屏 |
+| 顺昌智行（聚合/SSP） | `report.shunchangzhixing.com`（曝光上报 event=display adtype=5）、`static.shunchangzhixing.com`（ck.js） | 开屏曝光上报 |
 
 关键抓包证据：
 
@@ -27,7 +30,25 @@ GET http://p26-be-pack-sign.pglstatp-toutiao.com/ad.union.api/....jpeg
 
 # 腾讯云 HTTPDNS（广告 SDK 用它把广告域名解析成 IP，绕过域名屏蔽）
 GET http://119.29.29.98/d?dn=fdc746454d9d84d6138e1ba69081c1f7&id=6192
+
+# 掌游移动 ZY SDK 竞价回调（adx_code=zysdk2, bundle=com.tiangongwang.PocketUni）
+GET http://sdklog.zhangyuyidong.cn/sdk/lurl?win_price=1185&dspid=126&win_bidder=OTHER&adx_code=zysdk2&bundle=com.tiangongwang.PocketUni&...
+
+# 卓飞传媒 SDK 初始化
+POST http://inner-empty.hzzfcm.com/init2
+
+# 顺昌智行 开屏曝光上报（adtype=5=开屏, event=display）
+GET http://report.shunchangzhixing.com/channel/report?adtype=5&appid=202086&event=display&channel=zhike1&...
+
+# 顺昌智行 点击追踪脚本
+GET http://static.shunchangzhixing.com/ck.js
 ```
+
+### 为什么广告「屏蔽完又冒出来」
+
+四次抓包、每批请求都不完全一样：第一次只见阿里妈妈，第二次是 Fancy+穿山甲，第四次又冒出掌游移动/卓飞传媒/顺昌智行。原因是该 App 用的是**广告聚合（waterfall）**——同时接入十几家广告 SDK，按竞价逐个请求，谁出价高谁曝光。每次冷启动命中的 SDK 不同，所以「旧域名屏蔽了、新域名又冒出来」。
+
+解决办法就是**持续补域名**：抓一次、补一批，直到命中频率最高的几家 SDK 全部进屏蔽列表。第 4 次抓包已把新冒出的三家补齐。若还有广告，再抓一次发给作者即可（抓包时尽量停在开屏广告显示的那一秒，能抓到完整出价链）。
 
 ### 关于「京东广告」
 
@@ -48,8 +69,9 @@ GET http://119.29.29.98/d?dn=fdc746454d9d84d6138e1ba69081c1f7&id=6192
 2. **Fancy（含京东）**：`DOMAIN-SUFFIX` 拦掉 `1rtb.net`（广告竞价请求）、`fancydsp.com`（广告素材图）、`fancyapi.com`（上报/网关）。
 3. **穿山甲**：`DOMAIN-SUFFIX` 拦掉 `pglstatp-toutiao.com` 及字节跳动系广告域名。
 4. **阿里妈妈素材 CDN**：`DOMAIN` 拦掉 `alimama/mamasearchad/guangguang.cloudvideocdn.taobao.com`，`DOMAIN-SUFFIX` 拦 `tanx.com`、`mmstat.com`。
-5. **HTTPDNS 绕过**：`IP-CIDR,119.29.29.98/32` 拦掉腾讯云 HTTPDNS，广告 SDK 无法把广告域名解析成 IP 绕过屏蔽。
-6. **IP 直连兜底**：`IP-CIDR,59.82.0.0/16` 拦掉阿里妈妈/淘宝广告 CDN 直连 IP。
+5. **掌游移动 / 卓飞传媒 / 顺昌智行**：`DOMAIN-SUFFIX` 拦掉 `zhangyuyidong.cn`（RTB 竞价）、`hzzfcm.com`（SDK 初始化）、`shunchangzhixing.com`（曝光上报 + 点击追踪）。
+6. **HTTPDNS 绕过**：`IP-CIDR,119.29.29.98/32` 拦掉腾讯云 HTTPDNS，广告 SDK 无法把广告域名解析成 IP 绕过屏蔽。
+7. **IP 直连兜底**：`IP-CIDR,59.82.0.0/16` 拦掉阿里妈妈/淘宝广告 CDN 直连 IP。
 
 ## 安装方法
 
@@ -86,6 +108,9 @@ DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
 DOMAIN-SUFFIX,snssdk.com,REJECT
 DOMAIN-SUFFIX,byteimg.com,REJECT
 DOMAIN-SUFFIX,pstatp.com,REJECT
+DOMAIN-SUFFIX,zhangyuyidong.cn,REJECT
+DOMAIN-SUFFIX,hzzfcm.com,REJECT
+DOMAIN-SUFFIX,shunchangzhixing.com,REJECT
 IP-CIDR,119.29.29.98/32,REJECT
 IP-CIDR,59.82.0.0/16,REJECT
 
