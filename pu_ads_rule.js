@@ -1,44 +1,59 @@
 /**
  * PU口袋校园 - 广告屏蔽脚本（Loon http-request）
  *
- * 用途：拦截「阿里妈妈(Tanx)广告SDK」的 AMDC 移动调度请求，
- *       使广告SDK拿不到调度配置，开屏广告无法下发。
+ * 拦截两类请求：
+ *  1. 阿里妈妈(Tanx)广告SDK的 AMDC 移动调度（appkey=12431167）→ 开屏广告无法下发
+ *  2. 口袋校园自有广告位 /apis/ad/list/*（开屏=11、插屏=66、banner/运营位等）→ 返回空列表
  *
- * 抓包依据（Loon 导出 HAR）：
- *   POST /amdc/mobileDispatch?appkey=12431167&v=6.5&appVersion=7.24.90&cv=1
- *   该 appkey=12431167 是 PU口袋校园 广告SDK 的调度key。
+ * 抓包依据：
+ *  - HAR#1~#4：POST /amdc/mobileDispatch?appkey=12431167
+ *  - HAR#5（开 MITM）：GET https://apis.pocketuni.net/apis/ad/list/11 返回
+ *    {"code":0,"message":"成功","data":{"list":[{"id":4803,"title":"开屏...","place":11,...}]}}
+ *    说明开屏/插屏/banner 全部由 app 自有接口 /apis/ad/list/{place} 下发。
  *
- * 说明：
- *   第二次抓包里还出现 appkey=21380790&appVersion=10.57.20，
- *   那是淘宝App自身的 AMDC 请求（pn=com.taobao.taobao4iphone），
- *   不是口袋校园的，不要屏蔽，否则会误伤淘宝。
+ * 注意：appkey=21380790 是淘宝App自身的 AMDC 请求，不要屏蔽（避免误伤淘宝）。
  */
 
-// 口袋校园广告SDK使用的调度 appkey（抓包确认，可追加）
 var AD_APPKEYS = ["12431167"];
-
 var url = $request.url || "";
 
-function isAdDispatch() {
-    if (url.indexOf("/amdc/mobileDispatch") === -1) return false;
+// 1. 阿里妈妈 AMDC 调度
+if (url.indexOf("/amdc/mobileDispatch") !== -1) {
+    var isAd = false;
     for (var i = 0; i < AD_APPKEYS.length; i++) {
-        if (url.indexOf("appkey=" + AD_APPKEYS[i]) !== -1) return true;
+        if (url.indexOf("appkey=" + AD_APPKEYS[i]) !== -1) { isAd = true; break; }
     }
-    return false;
+    if (isAd) {
+        console.log("[pu_ads] 拦截 AMDC 调度: " + url);
+        $done({
+            response: {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/octet-stream",
+                    "Content-Length": "0"
+                },
+                body: ""
+            }
+        });
+    } else {
+        $done({});
+    }
+    return;
 }
 
-if (isAdDispatch()) {
-    console.log("[pu_ads] 已拦截开屏广告调度请求: " + url);
+// 2. 口袋校园自有广告位（开屏/插屏/banner/运营位）
+if (url.indexOf("apis.pocketuni.net/apis/ad/list/") !== -1) {
+    console.log("[pu_ads] 拦截自有广告位: " + url);
     $done({
         response: {
             status: 200,
             headers: {
-                "Content-Type": "application/octet-stream",
-                "Content-Length": "0"
+                "Content-Type": "application/json; charset=utf-8"
             },
-            body: ""
+            body: '{"code":0,"message":"成功","data":{"list":[]}}'
         }
     });
-} else {
-    $done({});
+    return;
 }
+
+$done({});

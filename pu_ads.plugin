@@ -1,44 +1,73 @@
 #!name = 口袋校园广告屏蔽（激进版）
-#!desc = 拦截PU口袋校园的全部广告SDK：阿里妈妈/Fancy/穿山甲/掌游移动/卓飞传媒/顺昌智行，含IP直连与HTTPDNS绕过拦截
+#!desc = 拦截PU口袋校园全部广告：自有广告位(开屏/插屏/banner)+阿里妈妈/Fancy/穿山甲/腾讯GDT/百度/TopOn/beizi/gameley/66mobi/buluken/bridgeoos/adwangmai/hubcloud/上海灵业/掌游移动/卓飞传媒/顺昌智行
 #!author = Pinetum7274
 #!homepage = https://github.com/Pinetum7274/pu_ads
 
 [Script]
 http-request ^https?://[^/]+/amdc/mobileDispatch script-path=https://raw.githubusercontent.com/Pinetum7274/pu_ads/main/pu_ads_rule.js, requires-body=false, tag=pu_ads_阿里妈妈开屏拦截
+http-request ^https?://apis\.pocketuni\.net/apis/ad/list/ script-path=https://raw.githubusercontent.com/Pinetum7274/pu_ads/main/pu_ads_rule.js, requires-body=false, tag=pu_ads_自有广告位拦截
 
 [Rule]
-# ===== 阿里妈妈广告 SDK（开屏广告调度） =====
+# ===== 阿里妈妈广告 SDK（开屏调度） =====
 DOMAIN,alimama.cloudvideocdn.taobao.com,REJECT
 DOMAIN,mamasearchad.cloudvideocdn.taobao.com,REJECT
 DOMAIN,guangguang.cloudvideocdn.taobao.com,REJECT
 DOMAIN-SUFFIX,tanx.com,REJECT
 DOMAIN-SUFFIX,mmstat.com,REJECT
 
-# ===== Fancy 广告 SDK（开屏/信息流/插屏，京东等广告主均经此下发） =====
-DOMAIN-SUFFIX,1rtb.net,REJECT
-DOMAIN-SUFFIX,fancydsp.com,REJECT
-DOMAIN-SUFFIX,fancyapi.com,REJECT
+# ===== 腾讯广告（GDT 优量汇/广点通） =====
+DOMAIN-SUFFIX,e.qq.com,REJECT
+DOMAIN-SUFFIX,gdt.qq.com,REJECT
+DOMAIN-SUFFIX,gdtimg.com,REJECT
+DOMAIN-SUFFIX,ugdtimg.com,REJECT
 
-# ===== 穿山甲 Pangle SDK（字节跳动） =====
+# ===== 字节跳动/穿山甲 Pangle SDK =====
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao1.com,REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com,REJECT
 DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
+DOMAIN-SUFFIX,adukwai.com,REJECT
+DOMAIN-SUFFIX,ctobsnssdk.com,REJECT
 DOMAIN-SUFFIX,snssdk.com,REJECT
 DOMAIN-SUFFIX,byteimg.com,REJECT
 DOMAIN-SUFFIX,pstatp.com,REJECT
 
-# ===== 掌游移动 ZY SDK（RTB广告交易所，竞价回调） =====
+# ===== Fancy 广告 SDK =====
+DOMAIN-SUFFIX,1rtb.net,REJECT
+DOMAIN-SUFFIX,fancydsp.com,REJECT
+DOMAIN-SUFFIX,fancyapi.com,REJECT
+
+# ===== TopOn(anythink) 广告聚合 =====
+DOMAIN-SUFFIX,anythinktech.com,REJECT
+
+# ===== 其他广告 SDK/SSP =====
+DOMAIN-SUFFIX,beizi.biz,REJECT
+DOMAIN-SUFFIX,gameley.com,REJECT
+DOMAIN-SUFFIX,66mobi.com,REJECT
+DOMAIN-SUFFIX,buluken.com,REJECT
+DOMAIN-SUFFIX,bridgeoos.com,REJECT
+DOMAIN-SUFFIX,adwangmai.com,REJECT
+DOMAIN-SUFFIX,hubcloud.com.cn,REJECT
+DOMAIN-SUFFIX,shanghailingye.cn,REJECT
+DOMAIN-SUFFIX,statisticslinks.com,REJECT
+
+# ===== 掌游移动 ZY SDK（RTB 竞价） =====
 DOMAIN-SUFFIX,zhangyuyidong.cn,REJECT
 
-# ===== 卓飞传媒（广告SDK初始化） =====
+# ===== 卓飞传媒 =====
 DOMAIN-SUFFIX,hzzfcm.com,REJECT
 
-# ===== 顺昌智行（广告聚合/SSP平台，开屏曝光上报） =====
+# ===== 顺昌智行（广告聚合/SSP） =====
 DOMAIN-SUFFIX,shunchangzhixing.com,REJECT
 
-# ===== 腾讯云 HTTPDNS（广告SDK用它把广告域名解析成IP、绕过域名屏蔽） =====
+# ===== 京东广告素材 CDN =====
+DOMAIN,ads-platform.s3-cache-accelerate.cn-north-1.jdcloud-oss.com,REJECT
+
+# ===== 腾讯云 HTTPDNS（广告SDK绕过域名屏蔽用） =====
 IP-CIDR,119.29.29.98/32,REJECT
 
 # ===== 阿里妈妈/淘宝广告 CDN 直连IP（激进：会连带影响淘宝App，不需要可删） =====
 IP-CIDR,59.82.0.0/16,REJECT
 
 [MITM]
-hostname = amdc.m.taobao.com, amdcopen.m.taobao.com, amdc.wapa.taobao.com, acs.m.taobao.com
+hostname = *.pocketuni.net, pocketuni.net, amdc.m.taobao.com, amdcopen.m.taobao.com, amdc.wapa.taobao.com, acs.m.taobao.com
