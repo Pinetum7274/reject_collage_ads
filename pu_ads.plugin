@@ -1,11 +1,11 @@
 #!name = 口袋校园广告屏蔽（激进版）
 #!desc = 拦截PU口袋校园全部广告：自有广告位(开屏/插屏/banner)+阿里妈妈/Fancy/穿山甲/腾讯GDT/百度/TopOn/beizi/gameley/66mobi/buluken/bridgeoos/adwangmai/hubcloud/上海灵业/掌游移动/卓飞传媒/顺昌智行
 #!author = Pinetum7274
-#!homepage = https://github.com/Pinetum7274/pu_ads
+#!homepage = https://github.com/Pinetum7274/reject_collage_ads
 
 [Script]
-http-request ^https?://[^/]+/amdc/mobileDispatch script-path=https://raw.githubusercontent.com/Pinetum7274/pu_ads/main/pu_ads_rule.js, requires-body=false, tag=pu_ads_阿里妈妈开屏拦截
-http-request ^https?://apis\.pocketuni\.net/apis/ad/list/ script-path=https://raw.githubusercontent.com/Pinetum7274/pu_ads/main/pu_ads_rule.js, requires-body=false, tag=pu_ads_自有广告位拦截
+http-request ^https?://[^/]+/amdc/mobileDispatch script-path=https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/pu_ads_rule.js, requires-body=false, tag=pu_ads_阿里妈妈开屏拦截
+http-request ^https?://apis\.pocketuni\.net/apis/ad/list/ script-path=https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/pu_ads_rule.js, requires-body=false, tag=pu_ads_自有广告位拦截
 
 [Rule]
 # ===== 阿里妈妈广告 SDK（开屏调度） =====

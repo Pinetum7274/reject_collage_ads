@@ -1,7 +1,7 @@
 #!name = 闪动校园广告屏蔽
 #!desc = 拦截闪动校园Pro全部广告SDK：顺昌智行/爱自由/杭州基准/华子睿/百通/雨晴云/广告玩机/穿山甲/快手/Sigmob/京东DSP/xcultur/wxcjgg/halomobi/讯飞xfadx，含IP直连上报拦截
 #!author = Pinetum7274
-#!homepage = https://github.com/Pinetum7274/pu_ads
+#!homepage = https://github.com/Pinetum7274/reject_collage_ads
 
 [Rule]
 # ===== 顺昌智行（广告聚合/SSP，开屏广告下发 + 曝光上报，与口袋校园共用） =====
