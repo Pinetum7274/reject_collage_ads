@@ -1,0 +1,23 @@
+#!name = 中国联通广告屏蔽
+#!desc = 拦截中国联通APP(手机营业厅)全部广告：自有OMO运营位(首页弹窗/瀑布流/专享/营销位/商城banner/品牌馆/搜索推荐) + 广告上报(smartad.10010.com) + 广告素材(m1.ad.10010.com)
+#!author = Pinetum7274
+#!homepage = https://github.com/Pinetum7274/reject_collage_ads
+
+[Script]
+http-request ^https?://m\.client\.10010\.com/ script-path=https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/unicom_ads_rule.js, requires-body=false, tag=unicom_ads_客户端运营位拦截
+http-request ^https?://card\.10010\.com/ script-path=https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/unicom_ads_rule.js, requires-body=false, tag=unicom_ads_商城banner拦截
+http-request ^https?://m\.10010\.com/ script-path=https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/unicom_ads_rule.js, requires-body=false, tag=unicom_ads_商城运营位拦截
+
+[Rule]
+# ===== 广告曝光/点击上报（纯广告域，可整域拦） =====
+DOMAIN,smartad.10010.com,REJECT
+# ===== 广告素材图（纯广告域，可整域拦） =====
+DOMAIN,m1.ad.10010.com,REJECT
+# ===== H5 营销页（img.client.10010.com 是共用 CDN，只能按路径拦） =====
+# 首页弹窗 H5
+URL-REGEX,^https?://img\.client\.10010\.com/homepopup/,REJECT
+# 首页精选 OMO H5（激进：会清空首页「精选」tab，不需要可删）
+URL-REGEX,^https?://img\.client\.10010\.com/homejingxuan12/,REJECT
+
+[MITM]
+hostname = m.client.10010.com, card.10010.com, m.10010.com, img.client.10010.com
