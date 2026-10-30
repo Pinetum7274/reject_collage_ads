@@ -457,13 +457,15 @@ disable-udp-ports = 443,80
 http-request ^https?://newmapi\.7mate\.cn/api/v1/banner/ script-path=7ma_ads_rule.js, requires-body=false, tag=7ma_ads_自有广告位拦截
 
 [Rule]
-URL-REGEX,snscosdownload/[^/]+/reserved/,REJECT
-URL-REGEX,snssvpdownload/[^/]+/reserved/,REJECT
-URL-REGEX,posid=\d+,REJECT
-URL-REGEX,ads_svp_video,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*/snscosdownload/[^/]+/reserved/,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*/snssvpdownload/[^/]+/reserved/,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*posid=\d+,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*ads_svp_video,REJECT
+DOMAIN,report-online.sh.wxgateway.com,REJECT
+URL-REGEX,^https?://wx\.qlogo\.cn/finderhead/,REJECT
 
 [MITM]
-hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wxs.qq.com
+hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wxs.qq.com, wx.qlogo.cn
 ```
 
 ## 重要：规则顺序 + MITM
@@ -492,11 +494,13 @@ hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wx
 - 第 4–7 次抓包验证：插件规则 + QUIC 屏蔽全部生效后，**视频/图片/缩略图素材请求 100% 被 REJECT、成功下载 0 条，激励视频不再播放**。
 - 仍会残留：**广告卡片本身**（标题/文案/广告主头像）——它们来自微信广告 SDK 的**竞价数据（bid）**，通过 **mmtls 加密通道**（与微信聊天消息同一通道）下发，代理工具无法解密、无法选择性拦截。这是所有代理类工具（Loon/Surge/Quantumult X）在微信小程序广告上的共同上限。
 - 图片/文字广告素材若走 HTTP 会被规则拦掉；若仍可见，先清微信自身缓存（微信 → 我 → 设置 → 通用 → 存储空间 → 清理缓存；长按删除小程序不会清这个），清完再看是否消失。
-- 可选加一条规则，拦掉广告主头像（卡片少一张图）：
+- 插件已内置两条补充规则（第 8 次抓包、白名单对比后加入）：
   ```
+  DOMAIN,report-online.sh.wxgateway.com,REJECT
   URL-REGEX,^https?://wx\.qlogo\.cn/finderhead/,REJECT
   ```
-  副作用：微信内所有「视频号」头像不显示（聊天头像走 `mmhead`，不受影响）。
+  - `report-online.sh.wxgateway.com` 是微信广告 SDK 的遥测上报域名（SdkReport），纯广告通道、可整域拦。
+  - `finderhead` 规则拦掉广告卡片上的广告主视频号头像（卡片少一张图）。副作用：微信内所有「视频号」头像不显示（聊天头像走 `mmhead`，不受影响）。不介意视频号头像可删掉这条。
 
 ## 未屏蔽的域名（避免误伤）
 
