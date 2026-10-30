@@ -14,11 +14,11 @@ http-request ^https?://newmapi\.7mate\.cn/api/v1/banner/ script-path=https://raw
 # 广告素材统一走微信 CDN 的「预留素材桶」路径（reserved 为广告系统预留桶标记，正常聊天图不走此路径）：
 #   snscosdownload/<区域>/reserved/<hex>   图片/信息流/banner 广告 + 缩略图（可带可不带 posid=5060180989186180）
 #   snssvpdownload/<区域>/reserved/<hex>   激励视频广告 mp4 + 封面 jpeg
-URL-REGEX,snscosdownload/[^/]+/reserved/,REJECT
-URL-REGEX,snssvpdownload/[^/]+/reserved/,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*/snscosdownload/[^/]+/reserved/,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*/snssvpdownload/[^/]+/reserved/,REJECT
 # 冗余兜底：广告位 ID posid= / 激励视频文件名 ads_svp_video（防止 reserved 路径将来变化）
-URL-REGEX,posid=\d+,REJECT
-URL-REGEX,ads_svp_video,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*posid=\d+,REJECT
+URL-REGEX,^https?://.*\.wxs\.qq\.com/.*ads_svp_video,REJECT
 
 [MITM]
 hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wxs.qq.com
