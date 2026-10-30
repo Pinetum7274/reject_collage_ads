@@ -20,5 +20,5 @@ URL-REGEX,^https?://.*\.wxs\.qq\.com/.*/snssvpdownload/[^/]+/reserved/,REJECT
 URL-REGEX,^https?://.*\.wxs\.qq\.com/.*posid=\d+,REJECT
 URL-REGEX,^https?://.*\.wxs\.qq\.com/.*ads_svp_video,REJECT
 
-[MITM]
+[Mitm]
 hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wxs.qq.com
