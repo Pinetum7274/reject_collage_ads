@@ -1,0 +1,43 @@
+#!name = 12306广告拦截
+#!desc = 拦截铁路12306 App 开屏/插屏/天气/京东/广点通广告及博睿埋点（广告服务独立域 ad.12306.cn，纯规则无脚本）
+#!author = Pinetum7274
+#!icon = https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/12306.png
+
+# 说明：
+# 12306 的广告全部由独立域名 ad.12306.cn 下发（getAdList 广告列表 / mzc 曝光点击 / mdeep 深链 / res/adfiles 素材图），
+# 与核心业务 mobile.12306.cn 完全分离，因此直接 REJECT 整域即可，无需 MITM 脚本（不像 PU 口袋校园那样广告位混在核心域名里）。
+#
+# 抓包结论（2026-10-30，开 MITM）：
+#   - ad.12306.cn/ad/ser/getAdList 返回 placementNo：0075(天气广告)、0007(京东开屏/插屏,广告位=广点通,channel=wechat,skipTime=4000)、0061、0063、G0054(京东直达 member.jr.jd.com)
+#   - 曝光/点击：ad.12306.cn/ad/mon/mzc、/ad/mon/mdeep
+#   - 京东 DSP：im-x.jd.com/dsp/np（竞价曝光）、ccc-wt.jd.com/dsp/cl（点击）
+#   - 埋点：exservice.12306.cn/excater/bonree/{upload,grip,config}（博睿宏远 APM）
+#
+# 重要：以下 REJECT 规则必须排在 GEOIP,CN,DIRECT 之前，否则广告域名会先被 GEOIP 放行。
+
+[Rule]
+
+# —— 12306 自有广告服务（核心，拦掉后开屏/插屏/天气/京东广告全部消失）——
+DOMAIN-SUFFIX,ad.12306.cn,REJECT
+
+# —— 广告/活动素材图（天气/活动 banner 图）——
+DOMAIN-SUFFIX,eximages.12306.cn,REJECT
+
+# —— 博睿 APM 埋点（只拦 /excater/bonree，不整域拦 exservice，避免误伤）——
+URL-REGEX,^https?://exservice\.12306\.cn/excater/bonree,REJECT
+
+# —— 京东 DSP 广告（竞价通知 / 点击上报）——
+DOMAIN,im-x.jd.com,REJECT
+DOMAIN,ccc-wt.jd.com,REJECT
+
+# —— 京东落地页（可选：ad.12306.cn 已拦，广告不展示就不会点进去；如需更彻底可取消注释，但会连带影响京东 App 会员活动页）——
+#DOMAIN,member.jr.jd.com,REJECT
+
+# —— 可选：DCloud 广告 H5 容器（cdn.dcloud.net.cn，uni-app 广告页，若不影响正常 H5 可取消注释）——
+#DOMAIN,cdn.dcloud.net.cn,REJECT
+
+# 未屏蔽（避免误伤核心功能）：
+#   mobile.12306.cn —— 主 API（订票/查询，勿拦）
+#   mobilegw.alipay.com —— 支付宝支付（勿拦）
+#   push.12306.cn —— 推送（含订单通知，默认不拦）
+#   dispatcher.is.autonavi.com —— 高德定位 SDK（非广告，默认不拦）
