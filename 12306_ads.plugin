@@ -1,7 +1,7 @@
 #!name = 12306广告拦截
 #!desc = 拦截铁路12306 App 开屏/插屏/天气/京东/广点通广告及博睿埋点（广告服务独立域 ad.12306.cn，纯规则无脚本）
 #!author = Pinetum7274
-#!icon = https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/12306.png
+#!homepage = https://github.com/Pinetum7274/reject_collage_ads
 
 # 说明：
 # 12306 的广告全部由独立域名 ad.12306.cn 下发（getAdList 广告列表 / mzc 曝光点击 / mdeep 深链 / res/adfiles 素材图），

@@ -8,12 +8,17 @@ http-request ^https?://newmapi\.7mate\.cn/api/v1/banner/ script-path=https://raw
 
 [Rule]
 # ===== 微信官方小程序广告素材 =====
-# 素材 CDN wximg.wxs.qq.com / wxsmw.wxs.qq.com 与微信聊天图片/视频共用，不能整域拦，
-# 只能按 URL 特征拦（需对这两个域名开 MITM 才能看到 URL 路径/查询参数）：
-#   1) 激励视频广告：URL 路径含 ads_svp_video（视频 ads_svp_video__*.mp4 + 封面 ads_svp_video__*.jpeg）
-#   2) 图片/信息流/banner 广告：URL 查询参数带 posid=（广告位ID，本小程序固定 5060180989186180）
-URL-REGEX,ads_svp_video,REJECT
+# 素材 CDN wximg.wxs.qq.com / wxsmw.wxs.qq.com / wxsnsdythumb.wxs.qq.com 与微信聊天/朋友圈图片共用，
+# 不能整域拦，只能按 URL 路径特征精确匹配（需对这些域名开 MITM 才能看到 URL 路径/查询参数）。
+#
+# 广告素材统一走微信 CDN 的「预留素材桶」路径（reserved 为广告系统预留桶标记，正常聊天图不走此路径）：
+#   snscosdownload/<区域>/reserved/<hex>   图片/信息流/banner 广告 + 缩略图（可带可不带 posid=5060180989186180）
+#   snssvpdownload/<区域>/reserved/<hex>   激励视频广告 mp4 + 封面 jpeg
+URL-REGEX,snscosdownload/[^/]+/reserved/,REJECT
+URL-REGEX,snssvpdownload/[^/]+/reserved/,REJECT
+# 冗余兜底：广告位 ID posid= / 激励视频文件名 ads_svp_video（防止 reserved 路径将来变化）
 URL-REGEX,posid=\d+,REJECT
+URL-REGEX,ads_svp_video,REJECT
 
 [MITM]
-hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com
+hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wxs.qq.com
