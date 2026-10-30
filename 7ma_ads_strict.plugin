@@ -1,0 +1,26 @@
+#!name = 7ma广告拦截·严格模式(实验版)
+#!desc = 白名单反推版:仅放行无广告抓包中的域名(weixin.qq.com微信核心+newmapi+map.qq.com地图),其余全部REJECT。会破坏微信聊天图片/视频、App推送与图片,仅用于排查「广告为何还在」。
+#!author = Pinetum7274
+#!homepage = https://github.com/Pinetum7274/reject_collage_ads
+
+[General]
+disable-udp-ports = 443,80
+
+[Script]
+http-request ^https?://newmapi\.7mate\.cn/api/v1/banner/ script-path=https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/7ma_ads_rule.js, requires-body=false, tag=7ma_ads_严格版_自有广告位拦截
+
+[Rule]
+# 广告包里出现、无广告包里没有的域名 → 全部 REJECT
+DOMAIN-SUFFIX,wxs.qq.com,REJECT
+DOMAIN,wx.qlogo.cn,REJECT
+DOMAIN,res.wx.qq.com,REJECT
+DOMAIN,mmbiz.qpic.cn,REJECT
+DOMAIN,search.wxqcloud.com,REJECT
+DOMAIN,report-online.sh.wxgateway.com,REJECT
+DOMAIN,ws1.7mate.cn,REJECT
+DOMAIN,img2.7mate.cn,REJECT
+DOMAIN,cdn1.dcloud.net.cn,REJECT
+DOMAIN,tongji-collector.dcloud.net.cn,REJECT
+
+[Mitm]
+hostname = newmapi.7mate.cn

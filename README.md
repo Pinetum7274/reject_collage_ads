@@ -520,6 +520,21 @@ hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wx
 - **`wximg.wxs.qq.com` / `wxsmw.wxs.qq.com` / `wxsnsdythumb.wxs.qq.com` 是微信图片/视频共用 CDN**：对这三个域名开 MITM，意味着 Loon 会解密所有走这三个域名的微信图片/视频流量（含正常聊天/朋友圈图片）。广告 URL 用 `snscosdownload/.../reserved/`、`snssvpdownload/.../reserved/` 精确识别（`reserved` 是微信广告系统的预留素材桶，正常聊天/朋友圈图不走该路径），再叠加 `posid=`、`ads_svp_video` 兜底，误伤概率很低；但如果你介意「微信图片/视频流量被本机 Loon 解密」这件事，可只保留 `newmapi.7mate.cn` 的 MITM + 脚本拦自有广告位，删掉四条 `URL-REGEX` 规则（代价是微信官方流量主/激励视频广告拦不掉）。
 - **`posid=` 是微信广告系统的「广告位 ID」参数**：在 `wximg/wxsmw.wxs.qq.com` 上出现即代表广告素材；但**新版不能只靠 `posid=`**——第二次抓包确认有 51 条广告素材不带 `posid=`（这也是「广告问题持续出现」的根因），所以必须以 `reserved` 预留桶路径为主。若想更保守，可删掉 `snscosdownload/[^/]+/reserved/` 这条（代价是那批不带 posid 的图片/缩略图广告会漏拦，广告会继续出现）。
 
+## 严格模式（实验版 `7ma_ads_strict.plugin`）
+
+上面的标准版用「精确路径」拦截广告，保留所有正常功能。如果你清过微信缓存、更新过插件后**广告依然可见**，可以试严格模式：以无广告抓包（64_1793375406009.har）为白名单，**广告抓包里有、无广告抓包里没有的域名全部 REJECT**。
+
+严格版拦截清单（及代价）：
+
+- `DOMAIN-SUFFIX,wxs.qq.com,REJECT` —— 微信媒体 CDN 整后缀拦（`wximg` 聊天图片、`wxsmw` 聊天视频、`wxsnsdythumb` 缩略图、`wxa` 小程序 UI 资源）。**代价：微信聊天图片/视频全部不显示。**
+- `DOMAIN,wx.qlogo.cn,REJECT` —— 所有头像。代价：微信内所有头像不显示。
+- `DOMAIN,res.wx.qq.com / mmbiz.qpic.cn / search.wxqcloud.com,REJECT` —— 微信资源/公众号图片/字体。代价：公众号文章图、部分微信 UI 资源与字体缺失。
+- `DOMAIN,ws1.7mate.cn,REJECT` —— App WebSocket。代价：订单状态实时推送失效。
+- `DOMAIN,img2.7mate.cn / cdn1.dcloud.net.cn / tongji-collector.dcloud.net.cn,REJECT` —— App 自有图片 / uni-app UI 资源 / 统计。代价：App 部分图片与阴影缺失、统计停摆。
+- 保留：`newmapi.7mate.cn`（主后端+脚本拦 banner）、`weixin.qq.com`（mmtls 核心通道，拦了小程序直接不可用）、`map.qq.com` 全系（地图，拦了找车功能废掉）。
+
+> 诚实预期：若严格模式下**广告仍在**（特别是文字/卡片），即证明该部分素材走 mmtls 加密通道下发，属于所有代理工具的物理上限——此时回退到标准版即可，标准版与严格版在广告拦截效果上已无差别。
+
 # 五、中国联通
 
 拦截 **中国联通APP**（`com.chinaunicom.mobilebusiness`，手机营业厅）全部广告的 Loon 插件。抓包 **1028 条请求、27 个域名**，确认联通广告 **100% 是「自有 OMO 运营位/营销位」**，由联通自家后台（`m.client.10010.com` / `card.10010.com` / `m.10010.com`）下发，混在正常功能接口里，**没有任何第三方广告 SDK**（无 GDT/穿山甲/百青藤）。
