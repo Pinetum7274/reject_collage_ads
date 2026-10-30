@@ -440,7 +440,8 @@ GET https://wxsnsdythumb.wxs.qq.com/141/20204/snscosdownload/SZ/reserved/<hex>?m
    ```
 3. **开 MITM**：Loon 里把 `wximg.wxs.qq.com`、`wxsmw.wxs.qq.com`、`wxsnsdythumb.wxs.qq.com`、`newmapi.7mate.cn` 加进 MITM 域名，并在 iOS「设置 → 通用 → 关于本机 → 证书信任设置」里信任 Loon 证书。
    - **关键**：`URL-REGEX` 要匹配到 URL 的**路径和查询参数**，前提是 HTTPS 被解密——不开 MITM，Loon 只看得到域名（SNI），看不到 `snscosdownload/.../reserved/`、`ads_svp_video`、`posid=`，广告拦不掉。
-4. 保存生效，重开小程序验证。
+4. **屏蔽 QUIC（关键，否则激励视频拦不掉）**：Loon → 配置 → 编辑当前配置 → `[General]` 段加一行 `disable-udp-ports = 443,80`，保存。微信的广告视频/图片在 TCP 被 REJECT 后会自动改用 QUIC（UDP 443）加密传输，Loon 规则只看得到 TCP，不屏蔽 QUIC 视频照样能播（详见下文「屏蔽 QUIC」一节）。
+5. 保存生效，重开小程序验证。
 
 > 默认分支若不是 `main`，把地址里的 `main` 换成你的分支名。
 
@@ -449,6 +450,9 @@ GET https://wxsnsdythumb.wxs.qq.com/141/20204/snscosdownload/SZ/reserved/<hex>?m
 把下面配置贴进 Loon 配置文本，脚本内容新建为本地脚本 `7ma_ads_rule.js`：
 
 ```ini
+[General]
+disable-udp-ports = 443,80
+
 [Script]
 http-request ^https?://newmapi\.7mate\.cn/api/v1/banner/ script-path=7ma_ads_rule.js, requires-body=false, tag=7ma_ads_自有广告位拦截
 
@@ -467,6 +471,21 @@ hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wx
 - 确认这几条 `URL-REGEX ... REJECT` **排在 `GEOIP,CN,DIRECT` 之前**（`wxs.qq.com` 解析到国内 IP，若 `GEOIP,CN,DIRECT` 在前面会先把它们放行）。
 - `URL-REGEX` 只对 **MITM 域名** 生效——只有开了 MITM 的域名，Loon 才能拿到完整 URL（含路径/查询参数）做正则匹配。所以 `wximg.wxs.qq.com` / `wxsmw.wxs.qq.com` / `wxsnsdythumb.wxs.qq.com` 必须在 MITM 列表里（见安装方法第 3 步）。
 - 自有广告位走 HTTPS，同样依赖 MITM（脚本才能拦到）。
+
+## 重要：屏蔽 QUIC（否则激励视频广告拦不掉）
+
+实测结论（第 4–6 次抓包）：把插件规则全开、MITM 全开之后，TCP 上的所有广告素材请求（视频/图片/缩略图）**100% 被 REJECT、成功下载数为 0**，但激励视频**依然能播放**。原因：微信的媒体传输在 TCP 请求被拒后自动回退到 **QUIC（UDP 443）** 加密通道（微信收发图片/视频本就走 QUIC），Loon 的 HAR/规则/MITM 只作用于 TCP 上的 HTTP，对 QUIC 既看不见也拦不到。
+
+解决办法（二选一）：
+
+- **推荐（全局）**：Loon → 配置 → 编辑当前配置 → `[General]` 段加：
+  ```
+  disable-udp-ports = 443,80
+  ```
+  保存后把代理开关关掉再打开。QUIC 被禁后微信自动回退 TCP，插件里的 `URL-REGEX` 规则就能拦到视频下载。
+- **节点级**：长按当前节点 → 编辑 → 打开「拦截 QUIC」（`block-quic`）。
+
+> 副作用：微信收发图片会从 QUIC 回退到 TCP，正常可用、略微变慢；文字消息不受影响。不需要拦视频广告时可删掉这行。
 
 ## 未屏蔽的域名（避免误伤）
 
