@@ -533,7 +533,7 @@ hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wx
 - `DOMAIN,img2.7mate.cn / cdn1.dcloud.net.cn / tongji-collector.dcloud.net.cn,REJECT` —— App 自有图片 / uni-app UI 资源 / 统计。代价：App 部分图片与阴影缺失、统计停摆。
 - 保留：`newmapi.7mate.cn`（主后端+脚本拦 banner）、`weixin.qq.com`（mmtls 核心通道，拦了小程序直接不可用）、`map.qq.com` 全系（地图，拦了找车功能废掉）。
 
-> 诚实预期：若严格模式下**广告仍在**（特别是文字/卡片），即证明该部分素材走 mmtls 加密通道下发，属于所有代理工具的物理上限——此时回退到标准版即可，标准版与严格版在广告拦截效果上已无差别。
+> 实测结果（第 9 次抓包 65_1793376399695.har，严格模式）：图片/视频/头像/缩略图广告**全部消失**，仅剩**文字信息流广告**。抓包时间线证实：mmtls 大包（9–40KB，每 4–7 秒一轮，来自 `szextshort.weixin.qq.com`）之后紧跟着被 REJECT 的广告素材请求（`ads_svp_video__*.mp4` 26 条 + 缩略图 12 条，38/38 全部 404/0）——**文字信息流 = mmtls 通道里的竞价数据**，与微信聊天消息同走加密隧道，代理工具无法解密、无法选择性拦截。这是所有代理类工具的物理上限，标准版与严格版在此项上无差别。
 
 # 五、中国联通
 
