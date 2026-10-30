@@ -19,6 +19,11 @@ URL-REGEX,^https?://.*\.wxs\.qq\.com/.*/snssvpdownload/[^/]+/reserved/,REJECT
 # 冗余兜底：广告位 ID posid= / 激励视频文件名 ads_svp_video（防止 reserved 路径将来变化）
 URL-REGEX,^https?://.*\.wxs\.qq\.com/.*posid=\d+,REJECT
 URL-REGEX,^https?://.*\.wxs\.qq\.com/.*ads_svp_video,REJECT
+# ===== 微信广告 SDK 遥测上报（白名单抓包从未出现，纯广告通道，整域可拦）=====
+DOMAIN,report-online.sh.wxgateway.com,REJECT
+# ===== 广告主视频号头像（激励视频广告卡片上的头像，走 finderhead 路径）=====
+# 聊天/个人头像走 mmhead 路径，不受影响；副作用=微信「视频号」里账号头像不显示
+URL-REGEX,^https?://wx\.qlogo\.cn/finderhead/,REJECT
 
 [Mitm]
-hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wxs.qq.com
+hostname = newmapi.7mate.cn, wximg.wxs.qq.com, wxsmw.wxs.qq.com, wxsnsdythumb.wxs.qq.com, wx.qlogo.cn
