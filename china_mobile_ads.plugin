@@ -1,0 +1,39 @@
+#!name = 中国移动广告屏蔽
+#!desc = 拦截中国移动App(cn.10086.app)广告：开屏/首页弹窗/toast/挽留弹窗 + 首页皮肤/顶部banner/新市场推广/搜索热词 + 智能推荐引擎(猜你喜欢/热门产品)。广告位与业务共用主后端 client.app.coc.10086.cn，须开 MITM 按 URL 路径拦截
+#!author = Pinetum7274
+#!homepage = https://github.com/Pinetum7274/reject_collage_ads
+
+[Rule]
+# ===== 开屏 / 弹窗（自有广告位，主后端 client.app.coc.10086.cn 按路径拦） =====
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/homepagePopup/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/toast/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DH/toast/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/detainment/,REJECT
+
+# ===== 首页运营位 / 皮肤 =====
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DH/homeSkin/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/homePage/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/newMarketService/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/searchWord/,REJECT
+
+# ===== 智能推荐 / 猜你喜欢（h.app.coc.10086.cn 推荐引擎） =====
+URL-REGEX,^https?://h\.app\.coc\.10086\.cn/ngpsie/psieappaiddsdkserver/,REJECT
+URL-REGEX,^https?://h\.app\.coc\.10086\.cn/ngpsie/psieappaijssdk/,REJECT
+URL-REGEX,^https?://h\.app\.coc\.10086\.cn/ngpsie/psieipuudp/,REJECT
+URL-REGEX,^https?://qwhdcdn\.cmcc-cs\.cn/ngpsie/,REJECT
+
+# ===== 可选：第三方 SDK（默认关闭，按需取消注释） =====
+# 设备指纹采集 SDK（appkey=5df133447d37，用于广告定向与风控；拦截可能触发风控/影响登录）
+# DOMAIN-SUFFIX,zztfly.com,REJECT
+# MobTech ShareSDK（分享统计，非广告）
+# DOMAIN,api.share.mob.com,REJECT
+# 移动MM 应用市场数据上报（遥测，非广告）
+# DOMAIN,da.mmarket.com,REJECT
+# 腾讯 Bugly 崩溃上报（遥测，非广告）
+# DOMAIN,ios.bugly.qq.com,REJECT
+# 全屏开屏图兜底（若拦截接口后开屏图仍加载，取消注释）
+# URL-REGEX,^https?://res\.app\.coc\.10086\.cn/qwhdcdn_cmcc-cs_cn/prd-mgcenter/.*(height=2868|height=2347),REJECT
+
+[MITM]
+# 必须对这些域名开 HTTPS 解密，URL-REGEX 才能命中路径；如日后广告迁到其它子域，可放宽为 *.coc.10086.cn
+hostname = client.app.coc.10086.cn, h.app.coc.10086.cn, qwhdcdn.cmcc-cs.cn

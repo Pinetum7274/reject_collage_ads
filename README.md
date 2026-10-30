@@ -1,6 +1,6 @@
 # 校园类 App 广告屏蔽（Loon）
 
-本仓库收集**校园类 App** 的开屏/信息流广告屏蔽插件，现覆盖六个 App：
+本仓库收集**校园类 App** 的开屏/信息流广告屏蔽插件，现覆盖七个 App：
 
 | App | 插件文件 | 广告 SDK |
 |-----|----------|----------|
@@ -10,6 +10,7 @@
 | 7ma(校园骑行小程序) | `7ma_ads.plugin` | 微信官方小程序广告(wximg/wxsmw.wxs.qq.com 流量主/激励视频) + 自有广告位(banner) |
 | 中国联通(手机营业厅) | `unicom_ads.plugin` | 自有OMO运营位/营销位(无第三方SDK) |
 | 闲鱼 | `xianyu_ads.plugin` | 阿里妈妈AMDC(appkey=12431167) + 自有广告位(idleadv) + 穿山甲 + 阿里妈妈云视频广告CDN + 优酷广告SDK + 阿里橙盾 |
+| 中国移动 | `china_mobile_ads.plugin` | 自有运营位(开屏/弹窗/首页皮肤/banner/搜索热词) + 智能推荐引擎(h.app.coc.10086.cn) |
 
 > PU口袋校园与闪动校园Pro 共用 **顺昌智行（shunchangzhixing.com）** 广告聚合平台。
 >
@@ -675,6 +676,73 @@ hostname = amdc.m.taobao.com, amdcopen.m.taobao.com, amdc.wapa.taobao.com, acs.m
 
 - `IP-CIDR,59.82.0.0/16,REJECT` 会连带影响**淘宝 App**（阿里妈妈广告 CDN 与淘宝共用 59.82 网段），不需要可删；`47.246.103.9/32` 是精确 IP，无影响。
 - `sealine.youku.com` / `cloudvideocdn.taobao.com` 是广告专用子域，整域 REJECT 安全，不影响优酷/淘宝正常功能。
+
+---
+
+# 七、中国移动
+
+拦截 **中国移动APP**（`cn.10086.app`）开屏/弹窗/首页运营位/智能推荐广告的 Loon 插件。抓包 **375 条请求、26 个域名**，确认移动广告分两类：
+
+1. **自有运营位/营销位**（混在主后端 `client.app.coc.10086.cn` 的 `/biz-orange/` 下，与登录/账户/消息共用，**不能整域拦**，只能按 URL 路径 REJECT）：
+   - 开屏/弹窗：首页弹窗 `homepagePopup`、toast 弹窗 `toast`、挽留弹窗 `detainment`、首页皮肤 `homeSkin`。
+   - 首页运营位：顶部 banner `homePage`、新市场推广 `newMarketService`、搜索热词 `searchWord`。
+2. **智能推荐/猜你喜欢**（推荐引擎 `h.app.coc.10086.cn` 的 `/ngpsie/` 与 `qwhdcdn.cmcc-cs.cn` 的 `/ngpsie/`）：下发个性化推荐/热门产品，整路径 REJECT。
+
+## 屏蔽原理
+
+移动广告位与业务共用主后端域名，且运营位响应体是 **AES 加密**（无法像联通那样回填空 JSON 优雅拦截），所以不写脚本、直接按 URL 路径 `URL-REGEX` REJECT 断连，让 App 拿不到广告数据。
+
+## 安装方法
+
+### 方式一：插件订阅（推荐）
+
+1. 复制 raw 地址：`https://raw.githubusercontent.com/Pinetum7274/reject_collage_ads/main/china_mobile_ads.plugin`
+2. Loon → 配置 → 插件 → 添加插件，粘贴地址即可。
+
+### 方式二：手动添加
+
+把下面配置贴进 Loon 配置文本：
+
+```ini
+[Rule]
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/homepagePopup/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/toast/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DH/toast/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/detainment/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DH/homeSkin/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/homePage/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/newMarketService/,REJECT
+URL-REGEX,^https?://client\.app\.coc\.10086\.cn/biz-orange/DN/searchWord/,REJECT
+URL-REGEX,^https?://h\.app\.coc\.10086\.cn/ngpsie/psieappaiddsdkserver/,REJECT
+URL-REGEX,^https?://h\.app\.coc\.10086\.cn/ngpsie/psieappaijssdk/,REJECT
+URL-REGEX,^https?://h\.app\.coc\.10086\.cn/ngpsie/psieipuudp/,REJECT
+URL-REGEX,^https?://qwhdcdn\.cmcc-cs\.cn/ngpsie/,REJECT
+
+[MITM]
+hostname = client.app.coc.10086.cn, h.app.coc.10086.cn, qwhdcdn.cmcc-cs.cn
+```
+
+## 重要：必须开 MITM
+
+- 移动广告接口全走 HTTPS，`URL-REGEX` 按路径拦截**依赖 MITM**（不开 MITM，Loon 只看得到域名 SNI，看不到 `/biz-orange/` 路径）。
+- 安装后把 `client.app.coc.10086.cn`、`h.app.coc.10086.cn`、`qwhdcdn.cmcc-cs.cn` 加进 Loon MITM 域名，并在 iOS「设置 → 通用 → 关于本机 → 证书信任设置」信任 Loon 证书。
+- 若广告日后迁到其它 `*.coc.10086.cn` 子域，把 MITM 的 hostname 放宽为 `*.coc.10086.cn`。
+
+## 未屏蔽的域名（避免误伤）
+
+移动抓包里其余域名均为正常功能或非广告 SDK，**不要屏蔽**：
+
+- `client.app.coc.10086.cn` —— 移动主后端（登录/账户/消息/业务全在这），**不能整域拦**，只按路径拦上面 8 个运营位接口。
+- `clientaccess.10086.cn` / `app.online-cmcc.cn` / `10086.online-cmcc.cn` / `wx.10086.cn` —— 账单话费/在线客服 H5，勿拦。
+- `push.it.10086.cn`（服务推送）、`jiguang.coc.10086.cn`（极光推送）、`mgsv/v/api/app-sc.miguvideo.com`（咪咕视频）、`user-njs.yun.139.com`、`base.hjq.komect.com`（和家亲）—— 非广告。
+- `zztfly.com`（设备指纹采集 SDK，`appkey=5df133447d37`，用于广告定向与风控）—— **默认不拦**，拦截可能触发风控/影响登录。
+- `api.share.mob.com`（MobTech ShareSDK）、`da.mmarket.com`（移动MM上报）、`ios.bugly.qq.com`（腾讯 Bugly 崩溃上报）—— 非广告。
+- `apm.app.coc.10086.cn` / `apm.clientaccess.10086.cn`（APM 监控）、`dnlog/log1.cmpassport.com`（登录日志）—— 非广告。
+
+## 取舍提醒
+
+- 推荐引擎（`psieappaiddsdkserver` / `psieappaijssdk` / `psieipuudp`）同时承载「猜你喜欢/热门产品」推荐，清空后相关推荐位会消失；若某处推荐对你重要，删掉对应 `URL-REGEX` 行即可。
+- 移动运营位响应体是 AES 加密的，无法回填空 JSON「优雅」拦截，只能用 REJECT 断连——App 侧表现为该广告位静默不展示，一般不影响正常功能。
 
 ---
 
