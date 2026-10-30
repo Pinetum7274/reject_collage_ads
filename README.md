@@ -8,6 +8,7 @@
 | 闪动校园Pro | `shandong_ads.plugin` | 顺昌智行 / 爱自由 / 杭州基准 / 华子睿 / 百通 / 雨晴云 / 广告玩机 / 穿山甲 / 快手 / Sigmob / 京东DSP / xcultur / wxcjgg / halomobi / 讯飞xfadx |
 | 学习通(超星) | `chaoxing_ads.plugin` | 百度百青藤(sofire.baidu.com) + 自有广告位(getAdsRecommend) |
 | 7ma(校园骑行小程序) | `7ma_ads.plugin` | 微信官方小程序广告(wximg/wxsmw.wxs.qq.com 流量主/激励视频) + 自有广告位(banner) |
+| 中国联通(手机营业厅) | `unicom_ads.plugin` | 自有OMO运营位/营销位(无第三方SDK) |
 | 闲鱼 | `xianyu_ads.plugin` | 阿里妈妈AMDC(appkey=12431167) + 自有广告位(idleadv) + 穿山甲 + 阿里妈妈云视频广告CDN + 优酷广告SDK + 阿里橙盾 |
 
 > PU口袋校园与闪动校园Pro 共用 **顺昌智行（shunchangzhixing.com）** 广告聚合平台。
